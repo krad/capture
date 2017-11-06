@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "capture",
     dependencies: [
-        .package(url: "https://www.github.com/krad/Buffie", from: "0.8.6"),
+        .package(url: "https://www.github.com/krad/Buffie", from: "0.8.9"),
     ],
     targets: [
         .target(

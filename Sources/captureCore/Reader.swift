@@ -26,9 +26,7 @@ public class CameraOutputReader: CameraReader {
     
     final public override func got(_ sample: CMSampleBuffer, type: SampleType) {
         super.got(sample, type: type)
-        guard let videoFormat = self.videoFormat,
-            let audioFormat = self.audioFormat
-            else { return }
+        guard let videoFormat = self.videoFormat else { return }
 
         if let writer = self.fileWriter {
             if writer.isWriting {
@@ -46,7 +44,7 @@ public class CameraOutputReader: CameraReader {
     }
     
     private func setupWriter(with videoFormat: CMFormatDescription,
-                             and audioFormat: CMFormatDescription) {
+                             and audioFormat: CMFormatDescription?) {
         self.setupCalled = true
         do {
             switch self.container {
