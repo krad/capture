@@ -1,6 +1,7 @@
 import XCTest
 @testable import captureCore
 
+@available(macOS 10.11, *)
 class CommandLineToolTests: XCTestCase {
 
     func test_that_we_can_parse_output_args() {
@@ -28,15 +29,20 @@ class CommandLineToolTests: XCTestCase {
         XCTAssertNotNil(tool)
         XCTAssertEqual(tool?.helpOptions, .printVideoInputs)
         
-        let args2 = ["./capture", "-w"]
+        let args2 = ["./capture", "-s"]
         let tool2 = try? CommandLineTool(args2)
         XCTAssertNotNil(tool2)
         XCTAssertEqual(tool2?.helpOptions, .printAudioInputs)
 
-        let args3 = ["./capture", "-l", "-w"]
+        let args3 = ["./capture", "-l", "-s"]
         let tool3 = try? CommandLineTool(args3)
         XCTAssertNotNil(tool3)
         XCTAssertEqual(tool3?.helpOptions, [.printVideoInputs, .printAudioInputs])
+
+        let args4 = ["./capture", "-l", "-s", "-w"]
+        let tool4 = try? CommandLineTool(args4)
+        XCTAssertNotNil(tool4)
+        XCTAssertEqual(tool4?.helpOptions, [.printVideoInputs, .printAudioInputs, .printDisplayInputs])
 
     }
     

@@ -2,7 +2,7 @@ import Foundation
 import Buffie
 import AVFoundation
 
-let version = "0.0.1"
+let version = "0.0.2"
 
 internal func printProgramInfo() {
     print("\ncapture \(version) (https://www.krad.io)")
@@ -16,9 +16,13 @@ public func printUsage() {
     print("  -l:\tLists available video devices on the system")
     print("  -v:\tVideo device to record from (use -l to get list of available devices.)")
     print("     \t(Uses first available device if not given)")
-    print("  -w:\tLists available audio devices on the system")
+    print("  -s:\tLists available audio devices on the system")
     print("     \t(Uses first available device if not given)")
-    print("  -a:\tAudio device to record from (use -w to get a list of available devices.)")
+    print("  -a:\tAudio device to record from (use -s to get a list of available devices.)")
+    if #available(macOS 10.11, *) {
+        print("  -w:\tLists available displays on the system")
+        print("  -d:\tDisplay device to record from (user -w to get a list of available displays.)")
+    }
     print("  -c:\tSet the container format {mp4, mov, m4v}.")
     print("     \tUses the extension of outfile if this is not present.\n")
     print("  -t:\tRecording time in seconds")
@@ -46,6 +50,15 @@ public func printAudioDevices() {
     print("AUDIO:")
     for (id, name) in AVCaptureDevice.audioDevicesDictionary() {
         print("  \(id) - \(name)")
+    }
+    print("")
+}
+
+@available (macOS 10.11, *)
+public func printDisplayDevices() {
+    print("DISPLAYS:")
+    for display in Display.getAll() {
+        print("  \(display.displayID) - \(display.name)")
     }
     print("")
 }
