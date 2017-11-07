@@ -34,6 +34,37 @@ EXAMPLE:
   capture -o movie.mp4 -f -t 60
 ```
 
+### Examples
+
+Below are some examples of how you can use `capture`
+
+#### Screen Recording
+
+First start by getting the Display ID of the screen you're interested in recording:
+```
+capture -w
+```
+
+You can record a screen to an output file like so:
+
+```
+capture -d 123456 -o screen.mp4 -f
+```
+
+You can also record a screen cast using an audio device.
+
+Start by getting the audio device you're interested in recording from:
+```
+capture -s
+```
+
+Then just simply pass it as the audio (`-a`) flag
+```
+capture -d 123456 -a HALINPUTDEVICE123 -o screenSpeek.mp4 -f
+```
+
+
+
 ## Installation
 
 ### Homebrew
