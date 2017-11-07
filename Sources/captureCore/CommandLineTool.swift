@@ -34,6 +34,7 @@ public class CommandLineTool {
     public var videoDeviceID: String?
     public var audioDeviceID: String?
     public var display: Display?
+    public var captureType: CaptureType = []
     
     private var signalTrap: SignalTrap?
 
@@ -64,21 +65,32 @@ public class CommandLineTool {
         let cameraReader = CameraOutputReader(url: url,
                                               container: self.container,
                                               bitrate: self.bitrate,
-                                              quality: self.quality)
+                                              quality: self.quality,
+                                              captureType: self.captureType)
         
         var captureDevice: CaptureDevice
         
-        if let videoDeviceID = self.videoDeviceID, let audioDeviceID = self.audioDeviceID {
+        if let videoDeviceID = self.videoDeviceID,
+            let audioDeviceID = self.audioDeviceID
+        {
             captureDevice = try Camera(videoDeviceID: videoDeviceID,
-                                audioDeviceID: audioDeviceID,
-                                reader: cameraReader,
-                                controlDelegate: nil)
+                                       audioDeviceID: audioDeviceID,
+                                              reader: cameraReader,
+                                     controlDelegate: nil)
+            
         } else if let display = self.display {
             
-            captureDevice = try ScreenRecorder(display: display, reader: cameraReader)
+            captureDevice = try ScreenRecorder(display: display,
+                                               audioDeviceID: self.audioDeviceID,
+                                               reader: cameraReader)
             
         } else {
-            captureDevice = try Camera(.back, reader: cameraReader, controlDelegate: nil)
+            
+            cameraReader.captureType = [.videoCapture, .audioCapture]
+            captureDevice = try Camera(.back,
+                                       reader: cameraReader,
+                                       controlDelegate: nil)
+            
         }
         
         /// This is what get's called when it's time to shutdown the program.
@@ -139,13 +151,16 @@ public class CommandLineTool {
                 
             case "v"?:
                 self.videoDeviceID = String(cString: optarg)
+                self.captureType.insert(.videoCapture)
                 
             case "a"?:
                 self.audioDeviceID = String(cString: optarg)
+                self.captureType.insert(.audioCapture)
                 
             case "d"?:
                 let displayDeviceID = UInt32((String(cString: optarg) as NSString).intValue)
                 self.display = Display.init(displayID: displayDeviceID)
+                self.captureType.insert(.screenCapture)
 
             case "q"?:
                 if let quality = MovieFileQuality(rawValue: String(cString: optarg)) {
