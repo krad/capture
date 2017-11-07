@@ -46,7 +46,16 @@ EXAMPLE:
 
 ### Homebrew
 
-_Coming Soon..._
+`capture` is very new and thus is only currently available as a Homebrew tap.
+
+As time goes on we hope to have a Formula merged into Homebrew-core.
+You can help by liking or watching this repository.
+
+In the meantime you can install it like so:
+```
+brew tap krad/tools
+brew install capture
+```
 
 ### From source
 
