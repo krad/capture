@@ -1,15 +1,21 @@
 # capture
 
-`capture` is a command line utility for creating media files from various system inputs.
+`capture` is a command line utility for creating media files from various Audio/Video inputs.
 
-You can use `capture` to create a movie from your webcam via the command line.
+You can use `capture` to create a movie file via the command line.
+
+Current Supported Inputs:
+  * FaceTime Camera
+  * USB Webcams
+  * HAL Audio Input Devices
+  * Screens / Displays
 
 ## Usage
 
 Run `capture` without any arguments to list all available options
 
 ```
-capture 0.0.1 (https://www.krad.io)
+capture 0.0.2 (https://www.krad.io)
 USAGE: capture [options]
 
 OPTIONS:
@@ -17,9 +23,11 @@ OPTIONS:
   -l:	Lists available video devices on the system
   -v:	Video device to record from (use -l to get list of available devices.)
      	(Uses first available device if not given)
-  -w:	Lists available audio devices on the system
+  -s:	Lists available audio devices on the system
      	(Uses first available device if not given)
-  -a:	Audio device to record from (use -w to get a list of available devices.)
+  -a:	Audio device to record from (use -s to get a list of available devices.)
+  -w:	Lists available displays on the system
+  -d:	Display device to record from (user -w to get a list of available displays.)
   -c:	Set the container format {mp4, mov, m4v}.
      	Uses the extension of outfile if this is not present.
 
@@ -34,7 +42,27 @@ EXAMPLE:
   capture -o movie.mp4 -f -t 60
 ```
 
-### Examples
+## Installation
+
+### Homebrew
+
+_Coming Soon..._
+
+### From source
+
+```
+git clone https://www.github.com/krad/capture.git capture
+cd capture
+swift build
+```
+
+## Dependencies
+
+ * Swift 4.0
+ * [Buffie](https://www.github.com/krad/Buffie)
+
+
+## Examples
 
 Below are some examples of how you can use `capture`
 
@@ -63,23 +91,21 @@ Then just simply pass it as the audio (`-a`) flag
 capture -d 123456 -a HALINPUTDEVICE123 -o screenSpeek.mp4 -f
 ```
 
+#### Webcam recording
 
+By default `capture` will use the first video and audio device available to capture input from.
 
-## Installation
-
-### Homebrew
-
-_Coming Soon..._
-
-### From source
-
+You can create a movie simply by running:
 ```
-git clone https://www.github.com/krad/capture.git capture
-cd capture
-swift build
+capture -o hi.mp4
 ```
 
-## Dependencies
+If you wish to use a specific camera or audio input you can obtain it's id by running:
+```
+capture -l -s
+```
 
- * Swift 4.0
- * [Buffie](https://www.github.com/krad/Buffie)
+Then just pass the IDs you obtained to the command:
+```
+capture -v VID123 -a HALINPUTDEVICE123 -o hi.mp4
+```
