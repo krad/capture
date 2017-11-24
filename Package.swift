@@ -6,7 +6,9 @@ import PackageDescription
 let package = Package(
     name: "capture",
     dependencies: [
-      .package(url: "https://www.github.com/krad/Buffie", from: "0.9.0"),
+      //.package(url: "https://www.github.com/krad/Buffie", from: "0.9.0"),
+      .package(url: "../Buffie", from: "0.9.2"),
+      .package(url: "https://github.com/PerfectlySoft/Perfect-Net", from: "3.0.0"),
     ],
     targets: [
         .target(
@@ -14,7 +16,7 @@ let package = Package(
             dependencies: ["Buffie", "captureCore"]),
         .target(
             name: "captureCore",
-            dependencies: ["Buffie"]),
+            dependencies: ["Buffie", "PerfectNet"]),
         .testTarget(name: "captureTests", dependencies: ["captureCore"]),
     ]
 )

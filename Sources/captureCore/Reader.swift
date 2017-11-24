@@ -23,6 +23,7 @@ public struct CaptureType: OptionSet {
     public static let screenCapture = CaptureType(rawValue: 1 << 2)
 }
 
+
 public class CameraOutputReader: AVReader {
     
     var fileWriter: MovieFileWriter?

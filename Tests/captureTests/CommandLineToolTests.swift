@@ -4,7 +4,7 @@ import XCTest
 @available(macOS 10.11, *)
 class CommandLineToolTests: XCTestCase {
 
-    func test_that_we_can_parse_output_args() {
+    func xtest_that_we_can_parse_output_args() {
         let dir = #file.components(separatedBy: "/").dropLast(3).joined(separator: "/")
         let args = ["./capture", "-o", "movie.mp4"]
         let tool = try? CommandLineTool(args)
