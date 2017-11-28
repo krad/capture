@@ -31,9 +31,10 @@ if #available(macOS 10.11, *) {
         
         print("Output file already exists.  Use -f flag to force overwrite.")
         
-    } catch {
+    } catch let error {
         
         print("Error running capture.  Run command with no options for detailed help.")
+        print(error)
         exit(-1)
         
     }

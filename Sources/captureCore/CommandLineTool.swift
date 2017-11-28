@@ -33,8 +33,13 @@ public class CommandLineTool {
     
     public var videoDeviceID: String?
     public var audioDeviceID: String?
+    
     public var display: Display?
     public var captureType: CaptureType = []
+
+    public var liveStream: Bool = false
+    public var webroot: String = "/tmp"
+    public var webport: Int = 3000
     
     private var signalTrap: SignalTrap?
 
@@ -50,78 +55,29 @@ public class CommandLineTool {
             throw CommandLineToolError.listInputs(options: self.helpOptions)
         }
         
-        guard let url = self.url else { throw CommandLineToolError.noFile }
-
-        if FileManager.default.fileExists(atPath: url.path) {
-            if self.forceOverwrite {
-                try FileManager.default.removeItem(atPath: url.path)
-            } else {
-                throw CommandLineToolError.fileExists
-            }
-        }
-        
-        // This is the meat and potatoes.
-        // This is how we use Buffie.  Look at the source of CameraOutputReader
-        let cameraReader = CameraOutputReader(url: url,
-                                              container: self.container,
-                                              bitrate: self.bitrate,
-                                              quality: self.quality,
-                                              captureType: self.captureType)
-        
-        var captureDevice: CaptureDevice
-        
-        if let videoDeviceID = self.videoDeviceID,
-            let audioDeviceID = self.audioDeviceID
-        {
-            captureDevice = try Camera(videoDeviceID: videoDeviceID,
-                                       audioDeviceID: audioDeviceID,
-                                              reader: cameraReader,
-                                     controlDelegate: nil)
-            
-        } else if let display = self.display {
-            
-            captureDevice = try ScreenRecorder(display: display,
-                                               audioDeviceID: self.audioDeviceID,
-                                               reader: cameraReader)
-            
+        if self.liveStream {
+            try StreamingCaptureSession.run(webroot: self.webroot,
+                                            port: self.webport)
         } else {
-            
-            cameraReader.captureType = [.videoCapture, .audioCapture]
-            captureDevice = try Camera(.back,
-                                       reader: cameraReader,
-                                       controlDelegate: nil)
-            
+            try LocalCaptureSession.run(url: self.url,
+                                        container: self.container,
+                                        bitrate: self.bitrate,
+                                        quality: self.quality,
+                                        captureType: self.captureType,
+                                        forceOverwrite: self.forceOverwrite,
+                                        videoDeviceID: self.videoDeviceID,
+                                        audioDeviceID: self.audioDeviceID,
+                                        display: self.display,
+                                        timeout: self.time)
         }
         
-        /// This is what get's called when it's time to shutdown the program.
-        let stopFunction = {
-            print("Finishing up...")
-            cameraReader.stop() { exit(0) }
-            captureDevice.stop()
-        }
         
-        // Trap sigint signals and trigger cleanup when they're spotted.
-        self.signalTrap = SignalTrap(SIGINT, onTrap: stopFunction)
-        
-        // Start the camera & recorder.  Let the user know we're running.
-        captureDevice.start()
-        printRunningMessage()
-        
-        // There was a timeout.  Schedule shutdown for timer
-        if let timeout = self.time {
-            let delayTime = DispatchTime.now() + .seconds(timeout)
-            DispatchQueue.main.asyncAfter(deadline: delayTime) {
-                stopFunction()
-            }
-        }
-
-        dispatchMain()
     }
     
     private func parseOptions(arguments: [String]) {
         var cargs = arguments.map { strdup($0) }
         repeat {
-            let ch = getopt(Int32(arguments.count), &cargs, "lwsv:a:d:o:t:c:q:b:f")
+            let ch = getopt(Int32(arguments.count), &cargs, "lwsv:a:d:o:t:c:q:b:fhr:p:")
             if ch  == -1 { break }
             
             switch UnicodeScalar(Int(ch)).flatMap(Character.init) {
@@ -172,6 +128,16 @@ public class CommandLineTool {
                 
             case "f"?:
                 self.forceOverwrite = true
+                
+            case "h"?:
+                print("LIVE STREAM")
+                self.liveStream = true
+                
+            case "r"?:
+                self.webroot = String(cString: optarg)
+                
+            case "p"?:
+                self.webport = Int(String(cString: optarg))!
                 
             default:
                 break

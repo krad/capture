@@ -8,7 +8,7 @@ let package = Package(
     dependencies: [
       //.package(url: "https://www.github.com/krad/Buffie", from: "0.9.0"),
       .package(url: "../Buffie", from: "0.9.2"),
-      .package(url: "https://github.com/PerfectlySoft/Perfect-Net", from: "3.0.0"),
+      .package(url: "https://github.com/IBM-Swift/BlueSocket.git", from: "0.12.77"),
     ],
     targets: [
         .target(
@@ -16,7 +16,7 @@ let package = Package(
             dependencies: ["Buffie", "captureCore"]),
         .target(
             name: "captureCore",
-            dependencies: ["Buffie", "PerfectNet"]),
+            dependencies: ["Buffie", "Socket"]),
         .testTarget(name: "captureTests", dependencies: ["captureCore"]),
     ]
 )
