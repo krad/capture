@@ -1,6 +1,8 @@
 import Foundation
 import Socket
 
+let serverTag = "Server: capture Webserver 0.0.3"
+
 let videoTag =
 """
 <html>
@@ -10,18 +12,86 @@ let videoTag =
 """
 
 struct HTTPRequest {
-    let verb: HttpVerb
+    let verb: HTTPVerb
     let path: String
     let protocolVersion: String
     let headers: [String: String]
 }
 
-enum HttpVerb: String {
+struct HTTPResponse {
+    let status: HTTPStatusCode
+    let contentType: String
+    let contentLength: Int
+    let body: Any
+
+    init(body: Data, path: String) {
+        self.status        = .ok
+        self.contentLength = body.count
+        self.body          = body
+        
+        if let ext = path.components(separatedBy: ".").last {
+            switch ext {
+            case "m3u8": self.contentType = "application/x-mpegURL"
+            case "mp4": self.contentType = "video/mp4"
+            default:
+                self.contentType = "text/html"
+            }
+        
+        } else {
+            self.contentType   = "text/html"
+        }
+    }
+    
+    init(body: String) {
+        self.status         = .ok
+        self.contentType    = "text/html"
+        self.contentLength  = body.count
+        self.body           = body
+    }
+    
+    var headerPayload: String {
+        return [self.status.body,
+                "Content-Type: \(self.contentType)",
+                "Content-Length: \(self.contentLength)"].joined(separator: "\n") + "\n\n"
+    }
+    
+    var bodyPayload: Data? {
+        if body is Data { return (body as! Data) }
+
+        if let bodyStr = body as? String {
+            let strBuf = [UInt8](bodyStr.utf8)
+            return Data(bytes: strBuf)
+        }
+        
+        return nil
+    }
+}
+
+enum HTTPVerb: String {
     case GET    = "GET"
     case POST   = "POST"
     case UPDATE = "UPDATE"
     case DELETE = "DELETE"
 }
+
+enum HTTPStatusCode: Int {
+    case ok                 = 200
+    case notFound           = 404
+    case interalServerError = 500
+    
+    var body: String {
+        return "HTTP/1.1 \(self.rawValue) \(self.name)"
+    }
+    
+    internal var name: String {
+        switch self {
+        case .ok:                 return "OK"
+        case .notFound:           return "Not Found"
+        case .interalServerError: return "Internal Server Error"
+        }
+    }
+}
+
 
 class Webserver {
     
@@ -93,7 +163,9 @@ class Webserver {
         do {
             if path == "/" {
                 
-                _ = try socket.write(from: "HTTP/1.1 200 OK\n\(videoTag)")
+                let response = HTTPResponse(body: videoTag)
+                _ = try socket.write(from: response.headerPayload)
+                if let payload = response.bodyPayload { _ = try socket.write(from: payload) }
                 socket.close()
                 
             } else {
@@ -104,9 +176,10 @@ class Webserver {
                     
                     do {
                         let fileData = try Data(contentsOf: fileURL)
+                        let response = HTTPResponse(body: fileData, path: strippedPath)
+                        _ = try socket.write(from: response.headerPayload)
+                        if let payload = response.bodyPayload { _ = try socket.write(from: payload) }
                         
-                        _ = try socket.write(from: "HTTP/1.1 200 OK\n")
-                        _ = try socket.write(from: fileData)
                         socket.close()
                     } catch {
                         _ = try socket.write(from: "HTTP/1.1 500 Internal Server Error\n")
@@ -145,10 +218,10 @@ internal func parseRequest(from input: String) -> HTTPRequest? {
     return nil
 }
 
-private func mainComps(from firstLine: String?) -> (HttpVerb, String, String)? {
+private func mainComps(from firstLine: String?) -> (HTTPVerb, String, String)? {
     let comps = firstLine?.components(separatedBy: " ")
     if let verbStr = comps?.first {
-        if let verb = HttpVerb(rawValue: verbStr) {
+        if let verb = HTTPVerb(rawValue: verbStr) {
             if let path = comps?[1] {
                 if let prot = comps?.last {
                     return (verb, path, prot)
