@@ -24,6 +24,7 @@ public func printUsage() {
         print("  -d:\tDisplay device to record from (user -w to get a list of available displays.)")
     }
     print("  -h:\tStart a live stream.  Runs a web server on port 3000 with an HLS live stream")
+    print("  -d:\tStart a VOD stream.  Will create a playlist and number of fragmented mp4 files.")
     print("  -r:\tDirectory to use to store HLS segment files")
     print("  -p:\tPort start start web server for HLS live stream (Default: 3000)")
     print("  -c:\tSet the container format {mp4, mov, m4v}.")

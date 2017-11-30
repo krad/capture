@@ -29,30 +29,11 @@ class LocalCaptureSession {
                                         captureType: captureType)
 
 
-        var captureDevice: CaptureDevice
+        let captureDevice = try getCaptureDevice(for: videoDeviceID,
+                                                 and: audioDeviceID,
+                                                 or: display,
+                                                 with: reader)
         
-        if let videoDeviceID = videoDeviceID,
-            let audioDeviceID = audioDeviceID
-        {
-            captureDevice = try Camera(videoDeviceID: videoDeviceID,
-                                       audioDeviceID: audioDeviceID,
-                                       reader: reader,
-                                       controlDelegate: nil)
-            
-        } else if let display = display {
-            captureDevice = try ScreenRecorder(display: display,
-                                               audioDeviceID: audioDeviceID,
-                                               reader: reader)
-            
-        } else {
-            if let r = reader as? CameraOutputReader {
-                r.captureType = [.videoCapture, .audioCapture]
-            }
-            captureDevice = try Camera(.back,
-                                       reader: reader,
-                                       controlDelegate: nil)
-        }
-
         /// This is what get's called when it's time to shutdown the program.
         let stopFunction = {
             print("Finishing up...")

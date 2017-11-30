@@ -38,6 +38,8 @@ public class CommandLineTool {
     public var captureType: CaptureType = []
 
     public var liveStream: Bool = false
+    public var liveStreamType: HLSPlaylistType = .live
+    
     public var webroot: String = "/tmp"
     public var webport: Int = 3000
     
@@ -57,7 +59,12 @@ public class CommandLineTool {
         
         if self.liveStream {
             try StreamingCaptureSession.run(webroot: self.webroot,
-                                            port: self.webport)
+                                            port: self.webport,
+                                            playlistType: self.liveStreamType,
+                                            videoDeviceID: self.videoDeviceID,
+                                            audioDeviceID: self.audioDeviceID,
+                                            display: self.display)
+
         } else {
             try LocalCaptureSession.run(url: self.url,
                                         container: self.container,
@@ -70,8 +77,6 @@ public class CommandLineTool {
                                         display: self.display,
                                         timeout: self.time)
         }
-        
-        
     }
     
     private func parseOptions(arguments: [String]) {
@@ -130,8 +135,10 @@ public class CommandLineTool {
                 self.forceOverwrite = true
                 
             case "h"?:
-                print("LIVE STREAM")
                 self.liveStream = true
+            
+            case "d"?:
+                self.liveStreamType = .vod
                 
             case "r"?:
                 self.webroot = String(cString: optarg)
@@ -148,4 +155,37 @@ public class CommandLineTool {
         optind = 1 /// getopt is kinda hacky. Reset index so tests don't freak out
     }
     
+}
+
+@available (macOS 10.11, *)
+internal func getCaptureDevice(for videoID: String?,
+                               and audioID: String?,
+                               or display: Display?,
+                               with reader: AVReader) throws -> CaptureDevice
+{
+    var captureDevice: CaptureDevice
+    
+    if let videoDeviceID = videoID,
+        let audioDeviceID = audioID
+    {
+        captureDevice = try Camera(videoDeviceID: videoDeviceID,
+                                   audioDeviceID: audioDeviceID,
+                                   reader: reader,
+                                   controlDelegate: nil)
+        
+    } else if let display = display {
+        captureDevice = try ScreenRecorder(display: display,
+                                           audioDeviceID: audioID,
+                                           reader: reader)
+        
+    } else {
+        if let r = reader as? CameraOutputReader {
+            r.captureType = [.videoCapture, .audioCapture]
+        }
+        captureDevice = try Camera(.back,
+                                   reader: reader,
+                                   controlDelegate: nil)
+    }
+    
+    return captureDevice
 }
